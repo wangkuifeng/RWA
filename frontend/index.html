@@ -1357,6 +1357,14 @@
         
         async function claimDividend() {
             try {
+                 // 检查可领取分红是否为0
+        const claimableAmount = parseFloat(document.getElementById('claimable-dividend').textContent);
+        // 添加额外的检查：如果显示为0，则提示用户
+        if (claimableAmount === 0) {
+            logMessage('可领取分红为0，无需操作', 'warning');
+            alert('当前没有可领取的分红');
+            return;
+        }
                 // 显示交易状态
                 showTransactionStatus('领取分红处理中...');
                 
@@ -1382,7 +1390,7 @@
                 hideTransactionStatus();
                 
                 alert('分红领取成功！');
-                
+             
             } catch (error) {
                 logMessage(`领取失败: ${error.message}`, 'error');
                 hideTransactionStatus();
@@ -1395,7 +1403,8 @@
                 } else {
                     alert(`领取失败: ${error.message}`);
                 }
-            }
+             }
+    
         }
         
         async function redeemShares() {
