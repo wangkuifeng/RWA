@@ -547,51 +547,18 @@
             margin-bottom: 10px;
         }
         
-        .address-compare {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 15px;
-            background: rgba(0, 0, 0, 0.2);
+        .dividend-notice {
+            background: rgba(243, 156, 18, 0.1);
+            border-left: 4px solid var(--warning);
             padding: 15px;
-            border-radius: 10px;
-            border: 1px solid var(--warning);
-        }
-        
-        .address-box {
-            flex: 1;
-            padding: 10px;
-        }
-        
-        .address-box h4 {
-            color: var(--warning);
-            margin-bottom: 8px;
-        }
-        
-        .address-value {
-            font-family: monospace;
+            border-radius: 8px;
+            margin-top: 15px;
             font-size: 0.9rem;
-            word-break: break-all;
         }
         
-        .match-indicator {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            padding: 0 20px;
-        }
-        
-        .match-icon {
-            font-size: 2rem;
-            margin-bottom: 5px;
-        }
-        
-        .match-true {
-            color: var(--success);
-        }
-        
-        .match-false {
-            color: var(--accent);
+        .dividend-notice i {
+            color: var(--warning);
+            margin-right: 10px;
         }
     </style>
 </head>
@@ -607,13 +574,12 @@
             <p>基于区块链的房地产投资解决方案 - 使用 mUSDT 测试代币</p>
             
             <div class="solution-box">
-                <h3><i class="fas fa-lightbulb"></i> 已配置合约信息</h3>
+                <h3><i class="fas fa-lightbulb"></i> 问题修复说明</h3>
                 <ul class="solution-list">
-                    <li><strong>mUSDT 合约地址:</strong> 0x2E9e09057408A7a1035e6A871e5F73848b4379B1</li>
-                    <li><strong>管理合约地址:</strong> 0x0D2e0d1975a394980Af3cee5aec969ac73251F6A</li>
-                    <li><strong>房产代币地址:</strong> 0x29d0D4D7607ec52E695AD6748fAEb8a3C69A7C09</li>
-                    <li><strong>初始房产价值:</strong> 1,000,000.00 mUSDT</li>
-                    <li><strong>IPFS 哈希:</strong> QmRYfrZ4yobkBMUD3Y4d4NV28ZeTUFCBwWSm1Z3B2Ndkca</li>
+                    <li><strong>管理员检查修复</strong>：修复了管理员状态检查失败的问题</li>
+                    <li><strong>分红领取优化</strong>：即使显示无可领分红，也可尝试领取</li>
+                    <li><strong>错误处理增强</strong>：提供更友好的错误提示</li>
+                    <li><strong>状态监控</strong>：添加交易状态监控和Etherscan链接</li>
                 </ul>
             </div>
             
@@ -662,7 +628,7 @@
                 </div>
                 
                 <div class="action-buttons">
-                    <button id="claim-btn" class="btn btn-disabled" disabled>
+                    <button id="claim-btn" class="btn">
                         <i class="fas fa-money-bill-wave"></i> 领取分红
                     </button>
                     <div class="transaction-status" id="transaction-status">
@@ -763,34 +729,15 @@
                     <button id="claim-btn2" class="btn">
                         <i class="fas fa-hand-holding-usd"></i> 立即领取分红
                     </button>
-                    <div class="property-description">
-                        领取您应得的房产租金分红，年化收益率约8%。
+                    <div class="dividend-notice">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <strong>注意：</strong> 即使显示无可领分红，您也可以尝试领取。合约状态可能未及时更新。
                     </div>
                 </div>
             </div>
             
             <div class="admin-section" id="admin-section" style="display: none;">
                 <h3><i class="fas fa-user-shield"></i> 管理员功能</h3>
-                
-                <div id="admin-compare-container" style="display: none;">
-                    <div class="address-compare">
-                        <div class="address-box">
-                            <h4>当前账户</h4>
-                            <div class="address-value" id="current-account-address"></div>
-                        </div>
-                        
-                        <div class="match-indicator">
-                            <div class="match-icon" id="match-icon">↔️</div>
-                            <div id="match-status">匹配中...</div>
-                        </div>
-                        
-                        <div class="address-box">
-                            <h4>合约管理员</h4>
-                            <div class="address-value" id="contract-admin-address"></div>
-                        </div>
-                    </div>
-                </div>
-                
                 <div class="action-grid">
                     <div class="action-card">
                         <h3><i class="fas fa-piggy-bank"></i> 存入分红</h3>
@@ -867,14 +814,14 @@
         const INITIAL_PROPERTY_VALUE = 1000000; // 100万 USDT
         const IPFS_HASH = "QmRYfrZ4yobkBMUD3Y4d4NV28ZeTUFCBwWSm1Z3B2Ndkca";
         
-        // 合约ABI（完整版）
+        // 合约ABI（修复版）
         const USDT_ABI = [
             "function balanceOf(address) view returns (uint256)",
             "function approve(address, uint256) returns (bool)",
             "function transfer(address, uint256) returns (bool)",
             "function decimals() view returns (uint8)",
             "function mint(address to, uint256 amount) external",
-            "function admin() view returns (address)"
+            "function owner() view returns (address)"  // 修复：使用owner()代替admin()
         ];
         
         const MANAGER_ABI = [
@@ -888,7 +835,8 @@
             "function propertyValue() view returns (uint256)",
             "function ipfsHash() view returns (string)",
             "function minPurchaseAmount() view returns (uint256)",
-            "function getPropertyToken() view returns (address)"
+            "function getPropertyToken() view returns (address)",
+            "function owner() view returns (address)"  // 添加owner()函数
         ];
         
         const TOKEN_ABI = [
@@ -944,11 +892,6 @@
         const networkIndicator = document.getElementById('network-indicator');
         const networkName = document.getElementById('network-name');
         const totalValue = document.getElementById('total-value');
-        const adminCompareContainer = document.getElementById('admin-compare-container');
-        const currentAccountAddress = document.getElementById('current-account-address');
-        const contractAdminAddress = document.getElementById('contract-admin-address');
-        const matchIcon = document.getElementById('match-icon');
-        const matchStatus = document.getElementById('match-status');
         
         // ====================== 初始化函数 ======================
         async function init() {
@@ -1117,7 +1060,7 @@
                 // 更新合约实例的签名者
                 usdtContract = usdtContract.connect(signer);
                 managerContract = managerContract.connect(signer);
-                tokenContract = tokenContract.connect(signer);
+                if (tokenContract) tokenContract = tokenContract.connect(signer);
                 
                 // 更新UI
                 statusIndicator.className = 'status-indicator status-connected';
@@ -1125,7 +1068,6 @@
                 accountAddress.textContent = `${currentAccount.substring(0, 6)}...${currentAccount.substring(38)}`;
                 connectBtn.textContent = '✅ 已连接';
                 claimBtn.disabled = false;
-                claimBtn.classList.remove('btn-disabled');
                 claimBtn2.disabled = false;
                 
                 logMessage(`钱包连接成功: ${currentAccount}`, "success");
@@ -1155,10 +1097,8 @@
             connectBtn.disabled = false;
             connectBtn.innerHTML = '<i class="fas fa-plug"></i> 连接钱包';
             claimBtn.disabled = true;
-            claimBtn.classList.add('btn-disabled');
             claimBtn2.disabled = true;
             adminSection.style.display = 'none';
-            adminCompareContainer.style.display = 'none';
             
             // 重置余额显示
             usdtBalance.textContent = '0.00';
@@ -1185,84 +1125,122 @@
                 usdtBalance.textContent = formatCurrency(ethers.utils.formatUnits(usdtBal, usdtDecimals));
                 
                 // 获取代币余额
-                const tokenBal = await tokenContract.balanceOf(currentAccount);
-                tokenBalance.textContent = formatCurrency(ethers.utils.formatUnits(tokenBal, tokenDecimals));
+                if (tokenContract) {
+                    const tokenBal = await tokenContract.balanceOf(currentAccount);
+                    tokenBalance.textContent = formatCurrency(ethers.utils.formatUnits(tokenBal, tokenDecimals));
+                } else {
+                    tokenBalance.textContent = "0.00";
+                    logMessage("代币合约未初始化", "warning");
+                }
                 
-                // 获取可领分红
-                const dividendBal = await managerContract.getClaimableDividend(currentAccount);
-                dividendBalance.textContent = formatCurrency(ethers.utils.formatUnits(dividendBal, usdtDecimals));
-                claimableDividend.textContent = formatCurrency(ethers.utils.formatUnits(dividendBal, usdtDecimals));
+                // 获取可领分红 - 添加错误处理
+                try {
+                    const dividendBal = await managerContract.getClaimableDividend(currentAccount);
+                    dividendBalance.textContent = formatCurrency(ethers.utils.formatUnits(dividendBal, usdtDecimals));
+                    claimableDividend.textContent = formatCurrency(ethers.utils.formatUnits(dividendBal, usdtDecimals));
+                } catch (error) {
+                    logMessage(`获取可领分红失败: ${error.message}`, "error");
+                    dividendBalance.textContent = "0.00";
+                    claimableDividend.textContent = "0.00";
+                }
                 
                 // 获取房产价值
-                const propValue = await managerContract.propertyValue();
-                let propValueFormatted;
-                
-                if (propValue.eq(0)) {
-                    // 如果合约中房产价值为0，使用初始值
-                    propValueFormatted = formatCurrency(INITIAL_PROPERTY_VALUE);
-                    propertyValue.textContent = propValueFormatted;
-                    totalValue.textContent = `房产总价值: $${propValueFormatted}`;
+                try {
+                    const propValue = await managerContract.propertyValue();
+                    let propValueFormatted;
                     
-                    // 更新合约中的房产价值
-                    try {
-                        const valueWei = ethers.utils.parseUnits(INITIAL_PROPERTY_VALUE.toString(), usdtDecimals);
-                        await managerContract.setPropertyValue(valueWei);
-                        logMessage("已设置初始房产价值", "success");
-                    } catch (error) {
-                        logMessage(`设置房产价值失败: ${error.message}`, "error");
+                    if (propValue.eq(0)) {
+                        // 如果合约中房产价值为0，使用初始值
+                        propValueFormatted = formatCurrency(INITIAL_PROPERTY_VALUE);
+                        propertyValue.textContent = propValueFormatted;
+                        totalValue.textContent = `房产总价值: $${propValueFormatted}`;
+                        
+                        // 更新合约中的房产价值
+                        try {
+                            const valueWei = ethers.utils.parseUnits(INITIAL_PROPERTY_VALUE.toString(), usdtDecimals);
+                            await managerContract.setPropertyValue(valueWei);
+                            logMessage("已设置初始房产价值", "success");
+                        } catch (error) {
+                            logMessage(`设置房产价值失败: ${error.message}`, "error");
+                        }
+                    } else {
+                        propValueFormatted = formatCurrency(ethers.utils.formatUnits(propValue, usdtDecimals));
+                        propertyValue.textContent = propValueFormatted;
+                        totalValue.textContent = `房产总价值: $${propValueFormatted}`;
                     }
-                } else {
-                    propValueFormatted = formatCurrency(ethers.utils.formatUnits(propValue, usdtDecimals));
-                    propertyValue.textContent = propValueFormatted;
-                    totalValue.textContent = `房产总价值: $${propValueFormatted}`;
+                } catch (error) {
+                    logMessage(`获取房产价值失败: ${error.message}`, "error");
+                    propertyValue.textContent = formatCurrency(INITIAL_PROPERTY_VALUE);
+                    totalValue.textContent = `房产总价值: $${formatCurrency(INITIAL_PROPERTY_VALUE)}`;
                 }
                 
                 // 获取最小购买金额
-                const minPurchaseAmount = await managerContract.minPurchaseAmount();
-                const minPurchaseFormatted = formatCurrency(ethers.utils.formatUnits(minPurchaseAmount, usdtDecimals));
-                minPurchase.textContent = minPurchaseFormatted;
-                minPurchaseLabel.textContent = minPurchaseFormatted;
+                try {
+                    const minPurchaseAmount = await managerContract.minPurchaseAmount();
+                    const minPurchaseFormatted = formatCurrency(ethers.utils.formatUnits(minPurchaseAmount, usdtDecimals));
+                    minPurchase.textContent = minPurchaseFormatted;
+                    minPurchaseLabel.textContent = minPurchaseFormatted;
+                } catch (error) {
+                    logMessage(`获取最小购买金额失败: ${error.message}`, "error");
+                    minPurchase.textContent = "1000.00";
+                    minPurchaseLabel.textContent = "1000.00";
+                }
                 
                 // 获取IPFS哈希
-                let ipfsHash = await managerContract.ipfsHash();
-                if (!ipfsHash || ipfsHash === "") {
-                    ipfsHash = IPFS_HASH; // 使用预设的IPFS哈希
-                    try {
-                        await managerContract.setIPFSHash(IPFS_HASH);
-                        logMessage("已设置初始IPFS哈希", "success");
-                    } catch (error) {
-                        logMessage(`设置IPFS哈希失败: ${error.message}`, "error");
+                try {
+                    let ipfsHash = await managerContract.ipfsHash();
+                    if (!ipfsHash || ipfsHash === "") {
+                        ipfsHash = IPFS_HASH; // 使用预设的IPFS哈希
+                        try {
+                            await managerContract.setIPFSHash(IPFS_HASH);
+                            logMessage("已设置初始IPFS哈希", "success");
+                        } catch (error) {
+                            logMessage(`设置IPFS哈希失败: ${error.message}`, "error");
+                        }
                     }
+                    ipfsLink.href = `https://ipfs.io/ipfs/${ipfsHash}`;
+                    ipfsLink.textContent = "查看房产文件";
+                } catch (error) {
+                    logMessage(`获取IPFS哈希失败: ${error.message}`, "error");
+                    ipfsLink.href = `https://ipfs.io/ipfs/${IPFS_HASH}`;
+                    ipfsLink.textContent = "查看房产文件";
                 }
-                ipfsLink.href = `https://ipfs.io/ipfs/${ipfsHash}`;
-                ipfsLink.textContent = "查看房产文件";
                 
                 // 获取锁定期信息
-                const lockEndTime = await tokenContract.lockEndTime();
-                const startTime = await tokenContract.startTime();
-                const currentTime = Math.floor(Date.now() / 1000);
-                
-                // 计算剩余时间
-                if (lockEndTime.gt(0)) {
-                    const lockEndTimestamp = lockEndTime.toNumber();
-                    
-                    if (lockEndTimestamp > currentTime) {
-                        const remaining = lockEndTimestamp - currentTime;
-                        const days = Math.floor(remaining / (24 * 3600));
-                        lockRemaining.textContent = `${days} 天`;
-                        lockStatus.textContent = "锁定中";
-                    } else {
-                        lockRemaining.textContent = "已结束";
-                        lockStatus.textContent = "可交易";
+                if (tokenContract) {
+                    try {
+                        const lockEndTime = await tokenContract.lockEndTime();
+                        const startTime = await tokenContract.startTime();
+                        const currentTime = Math.floor(Date.now() / 1000);
+                        
+                        // 计算剩余时间
+                        if (lockEndTime.gt(0)) {
+                            const lockEndTimestamp = lockEndTime.toNumber();
+                            
+                            if (lockEndTimestamp > currentTime) {
+                                const remaining = lockEndTimestamp - currentTime;
+                                const days = Math.floor(remaining / (24 * 3600));
+                                lockRemaining.textContent = `${days} 天`;
+                                lockStatus.textContent = "锁定中";
+                            } else {
+                                lockRemaining.textContent = "已结束";
+                                lockStatus.textContent = "可交易";
+                            }
+                            
+                            // 显示结束日期
+                            const endDate = new Date(lockEndTimestamp * 1000);
+                            lockEndDate.textContent = endDate.toLocaleDateString();
+                        } else {
+                            lockRemaining.textContent = "未设置";
+                            lockEndDate.textContent = "未设置";
+                            lockStatus.textContent = "未设置";
+                        }
+                    } catch (error) {
+                        logMessage(`获取锁定期信息失败: ${error.message}`, "error");
+                        lockRemaining.textContent = "未知";
+                        lockEndDate.textContent = "未知";
+                        lockStatus.textContent = "未知";
                     }
-                    
-                    // 显示结束日期
-                    const endDate = new Date(lockEndTimestamp * 1000);
-                    lockEndDate.textContent = endDate.toLocaleDateString();
-                } else {
-                    lockRemaining.textContent = "未设置";
-                    lockEndDate.textContent = "未设置";
-                    lockStatus.textContent = "未设置";
                 }
                 
                 logMessage("数据加载完成", "success");
@@ -1275,36 +1253,37 @@
         
         async function checkAdminStatus() {
             try {
-                // 检查是否是mUSDT合约管理员
-                const adminAddress = await usdtContract.admin();
+                // 检查是否是管理员 - 使用owner()代替admin()
+                let adminAddress;
                 
-                // 显示管理员账户对比
-                adminCompareContainer.style.display = 'block';
-                currentAccountAddress.textContent = currentAccount;
-                contractAdminAddress.textContent = adminAddress;
+                // 尝试从manager合约获取owner
+                try {
+                    adminAddress = await managerContract.owner();
+                    logMessage(`从Manager合约获取管理员地址: ${adminAddress}`, "info");
+                } catch (managerError) {
+                    logMessage(`从Manager合约获取管理员失败: ${managerError.message}`, "warning");
+                    
+                    // 尝试从USDT合约获取owner
+                    try {
+                        adminAddress = await usdtContract.owner();
+                        logMessage(`从USDT合约获取管理员地址: ${adminAddress}`, "info");
+                    } catch (usdtError) {
+                        logMessage(`从USDT合约获取管理员失败: ${usdtError.message}`, "error");
+                        throw new Error("无法获取管理员地址");
+                    }
+                }
                 
                 if (adminAddress.toLowerCase() === currentAccount.toLowerCase()) {
                     isAdmin = true;
                     adminSection.style.display = 'block';
-                    matchIcon.innerHTML = '<i class="fas fa-check-circle match-true"></i>';
-                    matchStatus.textContent = '管理员身份已验证';
-                    matchStatus.className = 'match-true';
-                    logMessage("管理员功能已启用", "info");
+                    logMessage("管理员功能已启用", "success");
                 } else {
                     isAdmin = false;
                     adminSection.style.display = 'none';
-                    matchIcon.innerHTML = '<i class="fas fa-times-circle match-false"></i>';
-                    matchStatus.textContent = '管理员身份不匹配';
-                    matchStatus.className = 'match-false';
-                    logMessage("检查管理员状态失败: 当前账户不是管理员", "warning");
+                    logMessage("当前账户不是管理员", "info");
                 }
             } catch (error) {
-                // 优化错误处理，避免revert导致整个应用崩溃
-                if (error.message.includes("revert")) {
-                    logMessage("检查管理员状态失败: 无法获取管理员地址", "error");
-                } else {
-                    logMessage(`检查管理员状态失败: ${error.message}`, "error");
-                }
+                logMessage(`检查管理员状态失败: ${error.message}`, "error");
                 isAdmin = false;
                 adminSection.style.display = 'none';
             }
@@ -1378,19 +1357,15 @@
         
         async function claimDividend() {
             try {
-                // 检查是否有可领分红
-                const dividendBal = await managerContract.getClaimableDividend(currentAccount);
-                if (dividendBal <= 0) {
-                    logMessage('无可领分红', 'warning');
-                    alert('当前无可领分红');
-                    return;
-                }
-                
                 // 显示交易状态
                 showTransactionStatus('领取分红处理中...');
                 
                 logMessage('领取分红中...', 'info');
-                const tx = await managerContract.claimDividend();
+                
+                // 直接调用claimDividend - 绕过估计gas
+                const tx = await managerContract.claimDividend({
+                    gasLimit: 300000 // 手动设置gas限制
+                });
                 
                 // 显示交易链接
                 showTransactionLink(tx.hash);
@@ -1413,7 +1388,13 @@
                 hideTransactionStatus();
                 console.error("领取错误:", error);
                 
-                alert(`领取失败: ${error.message}`);
+                // 提供更友好的错误信息
+                if (error.message.includes("No dividend to claim") || 
+                    error.message.includes("无可领取的分红")) {
+                    alert("领取失败：当前没有可领取的分红");
+                } else {
+                    alert(`领取失败: ${error.message}`);
+                }
             }
         }
         
@@ -1431,15 +1412,17 @@
                 const amountWei = ethers.utils.parseUnits(amount, tokenDecimals);
                 
                 // 检查锁定期
-                const lockEndTime = await tokenContract.lockEndTime();
-                const currentTime = Math.floor(Date.now() / 1000);
-                
-                if (lockEndTime.gt(0) && lockEndTime.toNumber() > currentTime) {
-                    const remaining = lockEndTime.toNumber() - currentTime;
-                    const days = Math.ceil(remaining / (24 * 3600));
-                    logMessage(`锁定期未结束，剩余 ${days} 天`, 'warning');
-                    alert(`锁定期未结束，剩余 ${days} 天`);
-                    return;
+                if (tokenContract) {
+                    const lockEndTime = await tokenContract.lockEndTime();
+                    const currentTime = Math.floor(Date.now() / 1000);
+                    
+                    if (lockEndTime.gt(0) && lockEndTime.toNumber() > currentTime) {
+                        const remaining = lockEndTime.toNumber() - currentTime;
+                        const days = Math.ceil(remaining / (24 * 3600));
+                        logMessage(`锁定期未结束，剩余 ${days} 天`, 'warning');
+                        alert(`锁定期未结束，剩余 ${days} 天`);
+                        return;
+                    }
                 }
                 
                 // 显示交易状态
@@ -1592,7 +1575,18 @@
         async function mintMockUSDT() {
             try {
                 // 检查管理员权限
-                const adminAddress = await usdtContract.admin();
+                let adminAddress;
+                try {
+                    adminAddress = await managerContract.owner();
+                } catch {
+                    try {
+                        adminAddress = await usdtContract.owner();
+                    } catch {
+                        logMessage("无法获取管理员地址", "error");
+                        return;
+                    }
+                }
+                
                 if (currentAccount.toLowerCase() !== adminAddress.toLowerCase()) {
                     logMessage("错误: 只有管理员可以铸造代币", "error");
                     alert("错误: 只有合约管理员可以铸造代币");
