@@ -18,6 +18,7 @@
   "dependencies": {
     "@metamask/providers": "^22.1.0",
     "ethers": "^6.15.0",
+    "express": "^5.1.0",
     "http-server": "^14.1.1",
     "opener": "^1.5.2"
   }
